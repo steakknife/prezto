@@ -1,0 +1,24 @@
+# sk1 prompt theme
+
+sk1_prompt_help() {
+  cat << 'EOF'
+  sk1
+EOF
+}
+
+prompt_sk1_setup() {
+
+  base_prompt=
+  add-zsh-hook precmd prompt_sk1_precmd
+}
+
+
+prompt_sk1_precmd() {
+  setopt noxtrace localoptions
+
+  PS1="%#> "
+  PS2="%_> "
+  PS3="?#> "
+}
+
+prompt_sk1_setup "$@"
