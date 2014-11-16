@@ -25,7 +25,10 @@ elif (( $+commands[rbenv] )); then
 
 # Load package manager installed chruby into the shell session.
 elif (( $+commands[chruby-exec] )); then
+  RUBIES_SAVE=( "${RUBIES[@]}" )
   source "${commands[chruby-exec]:h:h}/share/chruby/chruby.sh"
+  RUBIES=( "${RUBIES_SAVE[@]}" )
+  unset RUBIES_SAVE
   if zstyle -t ':prezto:module:ruby:chruby' auto-switch; then
     source "${commands[chruby-exec]:h:h}/share/chruby/auto.sh"
 
