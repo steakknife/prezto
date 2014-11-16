@@ -31,7 +31,12 @@ version is 4.3.17.
 
         chsh -s /bin/zsh
 
-  5. Open a new Zsh terminal window or tab.
+  5. Optionally: Place a file with your Bourne-compatible shell aliases in `~/.aliases`
+
+  6. Optionally: Place a file with your Bourne-compatible env vars in `~/.envrc`
+
+  7. Open a new Zsh terminal window or tab.
+
 
 ### Troubleshooting
 
