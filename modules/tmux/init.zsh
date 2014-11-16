@@ -4,6 +4,8 @@
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #   Colin Hebert <hebert.colin@gmail.com>
+#   Georges Discry <georges@discry.be>
+#   Xavier Cambar <xcambar@gmail.com>
 #
 
 # Return if requirements are not found.
@@ -15,30 +17,33 @@ fi
 # Auto Start
 #
 
-if [[ -z "$TMUX" ]] && zstyle -t ':prezto:module:tmux' auto-start; then
-  tmux_session='#Prezto'
+if ([[ "$TERM_PROGRAM" = 'iTerm.app' ]] && \
+  zstyle -t ':prezto:module:tmux:iterm' integrate \
+); then
+  _tmux_iterm_integration='-CC'
+fi
 
-  if ! tmux has-session -t "$tmux_session" 2> /dev/null; then
-    # Disable the destruction of unattached sessions globally.
-    tmux set-option -g destroy-unattached off &> /dev/null
+if [[ -z "$TMUX" && -z "$EMACS" && -z "$VIM" ]] && ( \
+  ( [[ -n "$SSH_TTY" ]] && zstyle -t ':prezto:module:tmux:auto-start' remote ) ||
+  ( [[ -z "$SSH_TTY" ]] && zstyle -t ':prezto:module:tmux:auto-start' local ) \
+); then
+  tmux start-server
 
-    # Create a new session.
-    tmux new-session -d -s "$tmux_session"
-
-    # Disable the destruction of the new, unattached session.
-    tmux set-option -t "$tmux_session" destroy-unattached off &> /dev/null
-
-    # Enable the destruction of unattached sessions globally to prevent
-    # an abundance of open, detached sessions.
-    tmux set-option -g destroy-unattached on &> /dev/null
+  # Create a 'prezto' session if no session has been defined in tmux.conf.
+  if ! tmux has-session 2> /dev/null; then
+    tmux_session='prezto'
+    tmux \
+      new-session -d -s "$tmux_session" \; \
+      set-option -t "$tmux_session" destroy-unattached off &> /dev/null
   fi
 
-  exec tmux new-session -t "$tmux_session"
+  # Attach to the 'prezto' session or to the last session used.
+  exec tmux $_tmux_iterm_integration attach-session
 fi
 
 #
 # Aliases
 #
 
-alias tmuxa='tmux attach-session'
+alias tmuxa="tmux $_tmux_iterm_integration new-session -A"
 alias tmuxl='tmux list-sessions'

@@ -36,6 +36,18 @@ To enable highlighting for this module only, add the following line to
 
     zstyle ':prezto:module:history-substring-search' color 'yes'
 
+To set the query found color, add the following line to *zpreztorc*:
+
+    zstyle ':prezto:module:history-substring-search:color' found ''
+
+To set the query not found color, add the following line to *zpreztorc*:
+
+    zstyle ':prezto:module:history-substring-search:color' not-found ''
+
+To set the search globbing flags, add the following line to *zpreztorc*:
+
+    zstyle ':prezto:module:history-substring-search' globbing-flags ''
+
 Authors
 -------
 
@@ -47,4 +59,3 @@ Authors
 [1]: https://github.com/zsh-users/zsh-history-substring-search
 [2]: http://fishshell.com
 [3]: https://github.com/sorin-ionescu/prezto/issues
-

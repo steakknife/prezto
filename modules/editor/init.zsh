@@ -4,42 +4,6 @@
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
-# Usage:
-#   To enable key bindings, add the following to zpreztorc, and replace 'map'
-#   with 'emacs' or 'vi.
-#
-#     zstyle ':prezto:module:editor' keymap 'map'
-#
-#   To enable the auto conversion of .... to ../.., add the following to
-#   zpreztorc.
-#
-#     zstyle ':prezto:module:editor' dot-expansion 'yes'
-#
-#   To indicate when the editor is in the primary keymap (emacs or viins), add
-#   the following to your theme prompt setup function.
-#
-#     zstyle ':prezto:module:editor:info:keymap:primary' format '>>>'
-#
-#   To indicate when the editor is in the primary keymap (emacs or viins) insert
-#   mode, add the following to your theme prompt setup function.
-#
-#     zstyle ':prezto:module:editor:info:keymap:primary:insert' format 'I'
-#
-#   To indicate when the editor is in the primary keymap (emacs or viins)
-#   overwrite mode, add the following to your theme prompt setup function.
-#
-#     zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format 'O'
-#
-#   To indicate when the editor is in the alternate keymap (vicmd), add the
-#   following to your theme prompt setup function.
-#
-#     zstyle ':prezto:module:editor:info:keymap:alternate' format '<<<'
-#
-#   To indicate when the editor is completing, add the following to your theme
-#   prompt setup function.
-#
-#     zstyle ':prezto:module:editor:info:completing' format '...'
-#
 
 # Return if requirements are not found.
 if [[ "$TERM" == 'dumb' ]]; then
@@ -57,44 +21,49 @@ setopt BEEP
 # Variables
 #
 
+# Treat these characters as part of a word.
+WORDCHARS='*?_-.[]~&;!#$%^(){}<>'
+
 # Use human-friendly identifiers.
 zmodload zsh/terminfo
 typeset -gA key_info
 key_info=(
-  'Control'   '\C-'
-  'Escape'    '\e'
-  'Meta'      '\M-'
-  'Backspace' "^?"
-  'Delete'    "^[[3~"
-  'F1'        "$terminfo[kf1]"
-  'F2'        "$terminfo[kf2]"
-  'F3'        "$terminfo[kf3]"
-  'F4'        "$terminfo[kf4]"
-  'F5'        "$terminfo[kf5]"
-  'F6'        "$terminfo[kf6]"
-  'F7'        "$terminfo[kf7]"
-  'F8'        "$terminfo[kf8]"
-  'F9'        "$terminfo[kf9]"
-  'F10'       "$terminfo[kf10]"
-  'F11'       "$terminfo[kf11]"
-  'F12'       "$terminfo[kf12]"
-  'Insert'    "$terminfo[kich1]"
-  'Home'      "$terminfo[khome]"
-  'PageUp'    "$terminfo[kpp]"
-  'End'       "$terminfo[kend]"
-  'PageDown'  "$terminfo[knp]"
-  'Up'        "$terminfo[kcuu1]"
-  'Left'      "$terminfo[kcub1]"
-  'Down'      "$terminfo[kcud1]"
-  'Right'     "$terminfo[kcuf1]"
-  'BackTab'   "$terminfo[kcbt]"
+  'Control'      '\C-'
+  'ControlLeft'  '\e[1;5D \e[5D \e\e[D \eOd'
+  'ControlRight' '\e[1;5C \e[5C \e\e[C \eOc'
+  'Escape'       '\e'
+  'Meta'         '\M-'
+  'Backspace'    "^?"
+  'Delete'       "^[[3~"
+  'F1'           "$terminfo[kf1]"
+  'F2'           "$terminfo[kf2]"
+  'F3'           "$terminfo[kf3]"
+  'F4'           "$terminfo[kf4]"
+  'F5'           "$terminfo[kf5]"
+  'F6'           "$terminfo[kf6]"
+  'F7'           "$terminfo[kf7]"
+  'F8'           "$terminfo[kf8]"
+  'F9'           "$terminfo[kf9]"
+  'F10'          "$terminfo[kf10]"
+  'F11'          "$terminfo[kf11]"
+  'F12'          "$terminfo[kf12]"
+  'Insert'       "$terminfo[kich1]"
+  'Home'         "$terminfo[khome]"
+  'PageUp'       "$terminfo[kpp]"
+  'End'          "$terminfo[kend]"
+  'PageDown'     "$terminfo[knp]"
+  'Up'           "$terminfo[kcuu1]"
+  'Left'         "$terminfo[kcub1]"
+  'Down'         "$terminfo[kcud1]"
+  'Right'        "$terminfo[kcuf1]"
+  'BackTab'      "$terminfo[kcbt]"
 )
 
 # Set empty $key_info values to an invalid UTF-8 sequence to induce silent
 # bindkey failure.
 for key in "${(k)key_info[@]}"; do
   if [[ -z "$key_info[$key]" ]]; then
-    key_info["$key"]='�'
+    key_info[$key]='�'
   fi
 done
 
@@ -140,30 +109,39 @@ function editor-info {
 }
 zle -N editor-info
 
-# Ensures that $terminfo values are valid and updates editor information when
-# the keymap changes.
-function zle-keymap-select zle-line-init zle-line-finish {
+# Updates editor information when the keymap changes.
+function zle-keymap-select {
+  zle editor-info
+}
+zle -N zle-keymap-select
+
+# Enables terminal application mode and updates editor information.
+function zle-line-init {
   # The terminal must be in application mode when ZLE is active for $terminfo
   # values to be valid.
-  if (( $+terminfo[smkx] && $+terminfo[rmkx] )); then
-    case "$0" in
-      (zle-line-init)
-        # Enable terminal application mode.
-        echoti smkx
-      ;;
-      (zle-line-finish)
-        # Disable terminal application mode.
-        echoti rmkx
-      ;;
-    esac
+  if (( $+terminfo[smkx] )); then
+    # Enable terminal application mode.
+    echoti smkx
   fi
 
   # Update editor information.
   zle editor-info
 }
-zle -N zle-keymap-select
-zle -N zle-line-finish
 zle -N zle-line-init
+
+# Disables terminal application mode and updates editor information.
+function zle-line-finish {
+  # The terminal must be in application mode when ZLE is active for $terminfo
+  # values to be valid.
+  if (( $+terminfo[rmkx] )); then
+    # Disable terminal application mode.
+    echoti rmkx
+  fi
+
+  # Update editor information.
+  zle editor-info
+}
+zle -N zle-line-finish
 
 # Toggles emacs overwrite mode and updates editor information.
 function overwrite-mode {
@@ -230,10 +208,10 @@ bindkey -d
 # Emacs Key Bindings
 #
 
-for key ("$key_info[Escape]"{B,b}) bindkey -M emacs "$key" emacs-backward-word
-for key ("$key_info[Escape]"{F,f}) bindkey -M emacs "$key" emacs-forward-word
-bindkey -M emacs "$key_info[Escape]$key_info[Left]" emacs-backward-word
-bindkey -M emacs "$key_info[Escape]$key_info[Right]" emacs-forward-word
+for key in "$key_info[Escape]"{B,b} "${(s: :)key_info[ControlLeft]}"
+  bindkey -M emacs "$key" emacs-backward-word
+for key in "$key_info[Escape]"{F,f} "${(s: :)key_info[ControlRight]}"
+  bindkey -M emacs "$key" emacs-forward-word
 
 # Kill to the beginning of the line.
 for key in "$key_info[Escape]"{K,k}
@@ -339,14 +317,13 @@ fi
 #
 
 # Set the key layout.
-zstyle -s ':prezto:module:editor' keymap 'keymap'
-if [[ "$keymap" == (emacs|) ]]; then
+zstyle -s ':prezto:module:editor' key-bindings 'key_bindings'
+if [[ "$key_bindings" == (emacs|) ]]; then
   bindkey -e
-elif [[ "$keymap" == vi ]]; then
+elif [[ "$key_bindings" == vi ]]; then
   bindkey -v
 else
-  print "prezto: invalid keymap: $keymap" >&2
+  print "prezto: editor: invalid key bindings: $key_bindings" >&2
 fi
 
-unset key{map,}
-
+unset key{,map,bindings}

@@ -1,5 +1,5 @@
 #
-# Extracts the contents of popular archive formats.
+# Extracts the contents of archives.
 #
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
@@ -37,7 +37,7 @@ while (( $# > 0 )); do
   success=0
   file_name="${1:t}"
   extract_dir="${file_name:r}"
-  case "$1" in
+  case "$1:l" in
     (*.tar.gz|*.tgz) tar xvzf "$1" ;;
     (*.tar.bz2|*.tbz|*.tbz2) tar xvjf "$1" ;;
     (*.tar.xz|*.txz) tar --xz --help &> /dev/null \
@@ -53,7 +53,9 @@ while (( $# > 0 )); do
     (*.lzma) unlzma "$1" ;;
     (*.Z) uncompress "$1" ;;
     (*.zip) unzip "$1" -d $extract_dir ;;
-    (*.rar) unrar e -ad "$1" ;;
+    (*.rar) unrar &> /dev/null \
+      && unrar x -ad "$1" \
+      || rar x -ad "$1" ;;
     (*.7z) 7za x "$1" ;;
     (*.deb)
       mkdir -p "$extract_dir/control"
@@ -74,4 +76,3 @@ while (( $# > 0 )); do
   (( $success == 0 )) && (( $remove_archive == 0 )) && rm "$1"
   shift
 done
-
